@@ -3,7 +3,7 @@
    ========================================== */
 
 /* Google Fonts Import */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,700&family=Cinzel:wght@500;700&family=Comfortaa:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,700&family=Cinzel:wght@500;700&family=Comfortaa:wght@300;400;500;700&family=Baumans&display=swap');
 
 :root {
   /* Color Palette */
@@ -36,7 +36,7 @@
   
   /* Fonts */
   --font-heading: 'Playfair Display', serif;
-  --font-logo: 'Bauhaus 93', 'ITC Bauhaus', 'Comfortaa', sans-serif;
+  --font-logo: 'ITC Bauhaus Medium', 'ITC Bauhaus', 'Bauhaus 93', 'Baumans', 'Comfortaa', sans-serif;
   --font-body: 'Plus Jakarta Sans', sans-serif;
   
   /* Border Radius */
@@ -269,7 +269,7 @@ h1, h2, h3, h4, h5, h6 {
 .logo-title {
   font-family: var(--font-logo);
   font-size: 1.85rem;
-  font-weight: 300;
+  font-weight: 500;
   color: var(--text-dark);
   line-height: 0.95;
   letter-spacing: -0.8px;
