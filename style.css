@@ -1366,16 +1366,26 @@ textarea.form-control {
 }
 
 /* Scroll Fade Utility */
-.fade-in-up {
+.fade-in-up, .fade-in-left, .fade-in-right, .scale-up {
   opacity: 0;
-  transform: translateY(30px);
   transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
               transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
 }
 
-.fade-in-up.appear {
+.fade-in-up { transform: translateY(30px); }
+.fade-in-left { transform: translateX(-35px); }
+.fade-in-right { transform: translateX(35px); }
+.scale-up { transform: scale(0.96); }
+
+.fade-in-up.appear, .fade-in-left.appear, .fade-in-right.appear {
   opacity: 1;
-  transform: translateY(0);
+  transform: translate(0, 0);
+}
+
+.scale-up.appear {
+  opacity: 1;
+  transform: scale(1);
 }
 
 /* ==========================================

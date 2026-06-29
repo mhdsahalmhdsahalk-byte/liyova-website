@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 5. SCROLL FADE ANIMATIONS
-  const fadeElems = document.querySelectorAll('.fade-in-up');
+  const fadeElems = document.querySelectorAll('.fade-in-up, .fade-in-left, .fade-in-right, .scale-up');
   const observerOptions = {
     threshold: 0.1,
     rootMargin: '0px 0px -50px 0px'
