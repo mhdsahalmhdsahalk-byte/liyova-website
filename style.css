@@ -880,39 +880,33 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding-bottom: 16px;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
   color: var(--gold);
 }
 
-.calc-summary-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 40px;
-  list-style: none;
+/* Scrollable Cart Receipt Box */
+#cartReceipt::-webkit-scrollbar {
+  width: 6px;
 }
-
-.calc-summary-item {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.95rem;
+#cartReceipt::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-full);
 }
-
-.calc-summary-label {
-  color: rgba(252, 250, 247, 0.7);
+#cartReceipt::-webkit-scrollbar-thumb {
+  background: rgba(197, 168, 128, 0.25);
+  border-radius: var(--radius-full);
 }
-
-.calc-summary-val {
-  font-weight: 600;
+#cartReceipt::-webkit-scrollbar-thumb:hover {
+  background: rgba(197, 168, 128, 0.5);
 }
 
 .calc-total-box {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-md);
-  padding: 24px;
+  padding: 20px;
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
 .calc-total-label {
@@ -920,13 +914,13 @@ h1, h2, h3, h4, h5, h6 {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--gold);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   font-weight: 700;
 }
 
 .calc-total-price {
   font-family: var(--font-heading);
-  font-size: 3rem;
+  font-size: 2.8rem;
   font-weight: 700;
   color: var(--text-light);
   line-height: 1;
@@ -934,7 +928,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .calc-disclaimer {
   font-size: 0.75rem;
-  color: rgba(252, 250, 247, 0.5);
+  color: rgba(252, 250, 247, 0.4);
   text-align: center;
   line-height: 1.4;
 }
