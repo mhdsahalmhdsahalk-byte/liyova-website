@@ -1493,3 +1493,302 @@ textarea.form-control {
     text-align: center;
   }
 }
+
+/* ==========================================
+   Admin Dashboard & Portal Modal Styles
+   ========================================== */
+.admin-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 10, 6, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: none;
+  z-index: 2000;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.admin-modal-overlay.active {
+  display: flex;
+}
+
+.admin-modal-container {
+  background: #170d07;
+  background-image: radial-gradient(circle at 10% 20%, rgba(123, 78, 41, 0.08) 0%, transparent 40%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 1000px;
+  height: 90vh;
+  max-height: 660px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+  animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.96); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.admin-modal-close {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 2.2rem;
+  border: none;
+  background: none;
+  color: rgba(252, 250, 247, 0.4);
+  cursor: pointer;
+  z-index: 100;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.admin-modal-close:hover {
+  color: var(--gold);
+}
+
+/* Auth Login Card */
+.admin-card-login {
+  width: 100%;
+  max-width: 400px;
+  margin: auto;
+  padding: 40px 30px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-md);
+  text-align: center;
+  box-shadow: var(--shadow-md);
+}
+
+.admin-login-title {
+  font-family: var(--font-heading);
+  color: var(--gold);
+  font-size: 1.6rem;
+  margin-bottom: 8px;
+}
+
+.admin-login-subtitle {
+  color: rgba(252, 250, 247, 0.6);
+  font-size: 0.85rem;
+  margin-bottom: 24px;
+  line-height: 1.4;
+}
+
+/* Dashboard Grid Layout */
+.admin-dashboard-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  height: 100%;
+  width: 100%;
+}
+
+.dash-sidebar {
+  background: rgba(0, 0, 0, 0.35);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.dash-sidebar-brand {
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 12px;
+  padding-left: 12px;
+}
+
+.dash-sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dash-nav-item {
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  color: rgba(252, 250, 247, 0.6);
+  cursor: pointer;
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.dash-nav-item:hover, .dash-nav-item.active {
+  background: rgba(197, 168, 128, 0.08);
+  color: var(--gold);
+}
+
+.dash-nav-item svg {
+  transition: transform 0.2s;
+}
+
+.dash-nav-item:hover svg {
+  transform: scale(1.1);
+}
+
+.dash-content {
+  padding: 30px;
+  overflow-y: auto;
+  background: #170d07;
+  height: 100%;
+}
+
+.dash-view {
+  display: none;
+  flex-direction: column;
+  height: 100%;
+}
+
+.dash-view.active {
+  display: flex;
+}
+
+.dash-view-title {
+  font-family: var(--font-heading);
+  color: #FFFFFF;
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 8px;
+}
+
+/* Metric Widgets */
+.dash-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.metric-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 20px 16px;
+  border-radius: var(--radius-md);
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.metric-card:hover {
+  border-color: rgba(197, 168, 128, 0.2);
+  transform: translateY(-2px);
+}
+
+.metric-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.metric-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 4px;
+  font-family: var(--font-heading);
+}
+
+.metric-desc {
+  font-size: 0.72rem;
+  color: rgba(252, 250, 247, 0.45);
+}
+
+/* Data Tables */
+.dash-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dash-table th, .dash-table td {
+  padding: 12px 14px;
+  font-size: 0.8rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.dash-table th {
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--gold);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+/* Dynamic Pricing Manager Form fields */
+.pricing-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  color: #FFFFFF;
+  font-size: 0.85rem;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.pricing-input:focus {
+  outline: none;
+  border-color: var(--gold);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Responsive Dashboards */
+@media (max-width: 850px) {
+  .admin-dashboard-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  
+  .dash-sidebar {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+  }
+
+  .dash-sidebar-brand {
+    margin-bottom: 0;
+    border-bottom: none;
+    padding-bottom: 0;
+    padding-left: 0;
+  }
+
+  .dash-sidebar-menu {
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .dash-nav-item {
+    padding: 8px 12px;
+    font-size: 0.75rem;
+  }
+
+  .dash-nav-item svg {
+    display: none;
+  }
+}
+

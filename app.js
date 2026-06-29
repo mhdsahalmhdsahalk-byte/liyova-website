@@ -1,9 +1,9 @@
 /* ==========================================================================
-   LIYOVA ONLINE - Config-Driven Interactive Logic & Multi-Item Estimator
+   LIYOVA ONLINE - Config-Driven Interactive Logic & Admin Portal Panel
    ========================================================================== */
 
-// 1. SERVICES & PRICING CONFIGURATION (Exact User-Provided Rates)
-const SERVICES_CONFIG = {
+// 1. DEFAULT PRICING CONFIGURATION (Exact User-Provided Rates)
+const DEFAULT_SERVICES_CONFIG = {
   "printing-a4": {
     name: "A4 Size Printing & Copying",
     type: "document-printing",
@@ -36,7 +36,7 @@ const SERVICES_CONFIG = {
     options: {
       "spiral": { label: "Spiral Binding", base: 50, perPage: 1 },
       "hard-standard": { label: "Standard Hard Binding", base: 150, perPage: 0 },
-      "hard-premium": { label: "Premium Hard Binding (Gold Lettering)", base: 250, perPage: 0 }
+      "hard-premium": { label: "Premium Hard Binding", base: 250, perPage: 0 }
     }
   },
   "lamination": {
@@ -52,7 +52,7 @@ const SERVICES_CONFIG = {
     name: "PVC ID Card Printing",
     type: "quantity",
     options: {
-      "standard": { label: "Standard PVC Card (100/card)", rate: 100 }
+      "standard": { label: "Standard PVC Card", rate: 100 }
     }
   },
   "nylon-seals": {
@@ -68,12 +68,28 @@ const SERVICES_CONFIG = {
   }
 };
 
+// 2. STATE MANAGER (Initialize Databases from localStorage)
+let SERVICES_CONFIG = JSON.parse(localStorage.getItem('liyova_services_config')) || DEFAULT_SERVICES_CONFIG;
+if (!localStorage.getItem('liyova_services_config')) {
+  localStorage.setItem('liyova_services_config', JSON.stringify(DEFAULT_SERVICES_CONFIG));
+}
+
+let ORDER_LOGS = JSON.parse(localStorage.getItem('liyova_order_logs')) || [];
+if (!localStorage.getItem('liyova_order_logs')) {
+  localStorage.setItem('liyova_order_logs', JSON.stringify([]));
+}
+
+let ADMIN_PASSCODE = localStorage.getItem('liyova_admin_passcode') || 'liyova123';
+if (!localStorage.getItem('liyova_admin_passcode')) {
+  localStorage.setItem('liyova_admin_passcode', 'liyova123');
+}
+
 // Global Shopping Cart State
 let orderCart = [];
 
 document.addEventListener('DOMContentLoaded', () => {
   
-  // 2. HEADER SCROLL DETECTION
+  // 3. HEADER SCROLL DETECTION
   const header = document.querySelector('.header');
   window.addEventListener('scroll', () => {
     if (window.scrollY > 50) {
@@ -83,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 3. MOBILE MENU TOGGLE
+  // 4. MOBILE MENU TOGGLE
   const menuToggle = document.getElementById('menuToggle');
   const navMenu = document.getElementById('navMenu');
   
@@ -114,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 4. SCROLL FADE ANIMATIONS
+  // 5. SCROLL FADE ANIMATIONS
   const fadeElems = document.querySelectorAll('.fade-in-up');
   const observerOptions = {
     threshold: 0.1,
@@ -134,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
     scrollObserver.observe(elem);
   });
 
-  // 5. PORTFOLIO TABS FILTERING
+  // 6. PORTFOLIO TABS FILTERING
   const tabs = document.querySelectorAll('.portfolio-tab');
   const items = document.querySelectorAll('.portfolio-item');
 
@@ -162,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 6. DYNAMIC CALCULATOR LOGIC
+  // 7. DYNAMIC CALCULATOR LOGIC
   const calcService = document.getElementById('calcService');
   const dynamicOptions = document.getElementById('dynamicOptions');
   const btnAddItem = document.getElementById('btnAddItem');
@@ -172,6 +188,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize service category list in calculator
   if (calcService) {
+    initCalculatorServices();
+
+    calcService.addEventListener('change', () => {
+      renderServiceFields(calcService.value);
+    });
+  }
+
+  function initCalculatorServices() {
     calcService.innerHTML = '';
     Object.keys(SERVICES_CONFIG).forEach(key => {
       const option = document.createElement('option');
@@ -179,11 +203,6 @@ document.addEventListener('DOMContentLoaded', () => {
       option.textContent = SERVICES_CONFIG[key].name;
       calcService.appendChild(option);
     });
-
-    calcService.addEventListener('change', () => {
-      renderServiceFields(calcService.value);
-    });
-    
     // Render initial service fields
     renderServiceFields(calcService.value);
   }
@@ -365,11 +384,11 @@ document.addEventListener('DOMContentLoaded', () => {
       desc = `${count} Pages of ${option.label} [${modeLabel}] @ ₹${unitPrice}/pg${bulkTag}`;
 
     } else if (service.type === 'pages') {
-      price = option.base + (option.perPage * count);
+      price = parseFloat(option.base) + (parseFloat(option.perPage) * count);
       desc = `${option.label} (${count} Pages)`;
 
     } else if (service.type === 'quantity') {
-      price = option.rate * count;
+      price = parseFloat(option.rate) * count;
       desc = `${count}x ${option.label}`;
     }
 
@@ -391,7 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 7. ORDER CART ACTIONS
+  // 8. ORDER CART ACTIONS
   if (btnAddItem) {
     btnAddItem.addEventListener('click', () => {
       const configuredItem = calculateCurrentItem();
@@ -493,20 +512,40 @@ document.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(update);
   }
 
-  // 8. PREMIUM WHATSAPP INVOICE FORMATTING
+  // 9. DATABASE LOGGING HOOKS
+  function logOrderToDatabase(type, itemsText, total) {
+    const newOrder = {
+      id: Date.now(),
+      timestamp: new Date().toLocaleString(),
+      type: type, // 'WhatsApp Cart' or 'Contact Inquiry'
+      details: itemsText,
+      total: total,
+      status: 'Pending'
+    };
+    ORDER_LOGS.unshift(newOrder);
+    localStorage.setItem('liyova_order_logs', JSON.stringify(ORDER_LOGS));
+  }
+
+  // 10. PREMIUM WHATSAPP INVOICE FORMATTING
   if (btnWhatsAppOrder) {
     btnWhatsAppOrder.addEventListener('click', () => {
       if (orderCart.length === 0) return;
 
       let total = 0;
       let itemsList = '';
+      let logText = '';
       
       orderCart.forEach((item, index) => {
         total += item.price;
         itemsList += `${index + 1}. *${item.serviceName}*\n`;
         itemsList += `   • Detail: ${item.desc}\n`;
         itemsList += `   • Subtotal: ₹${item.price}\n\n`;
+
+        logText += `${item.serviceName} (${item.desc}) - ₹${item.price}; `;
       });
+
+      // Save order in local Admin Orders database
+      logOrderToDatabase('WhatsApp Cart', logText, total);
 
       const invoiceMsg = `*🧾 LIYOVA ONLINE - ORDER INVOICE*
 --------------------------------------------
@@ -526,7 +565,7 @@ Please let me know how I should send my files/documents. Thank you!`;
     });
   }
 
-  // 9. CONTACT FORM SUBMISSION TO WHATSAPP
+  // 11. CONTACT FORM SUBMISSION TO WHATSAPP
   const contactForm = document.getElementById('contactForm');
   const formSuccess = document.getElementById('formSuccess');
 
@@ -543,6 +582,10 @@ Please let me know how I should send my files/documents. Thank you!`;
         alert('Please fill out all fields.');
         return;
       }
+
+      // Log contact inquiry to admin orders database
+      const inquiryLogText = `From: ${name} | Phone: ${phone} | Email: ${email} | msg: ${message}`;
+      logOrderToDatabase('Contact Inquiry', inquiryLogText, 0);
 
       // Format WhatsApp query
       const waContactMsg = `*📩 LIYOVA ONLINE - NEW CONTACT INQUIRY*
@@ -575,4 +618,469 @@ ${message}
       }, 300);
     });
   }
+
+  // ==========================================
+  // 12. ADMIN PORTAL FUNCTIONALITY
+  // ==========================================
+  const triggerAdmin = document.getElementById('triggerAdmin');
+  const adminModal = document.getElementById('adminModal');
+  const closeAdminModal = document.getElementById('closeAdminModal');
+  const adminLoginScreen = document.getElementById('adminLoginScreen');
+  const adminDashboardScreen = document.getElementById('adminDashboardScreen');
+  const btnSubmitLogin = document.getElementById('btnSubmitLogin');
+  const adminPassInput = document.getElementById('adminPassInput');
+  const loginErrorMsg = document.getElementById('loginErrorMsg');
+
+  // Open modal check
+  if (triggerAdmin) {
+    triggerAdmin.addEventListener('click', (e) => {
+      e.preventDefault();
+      adminModal.classList.add('active');
+      
+      // Check if session is already authenticated
+      if (sessionStorage.getItem('liyova_admin_authenticated') === 'true') {
+        showAdminDashboard();
+      } else {
+        showAdminLogin();
+      }
+    });
+  }
+
+  if (closeAdminModal) {
+    closeAdminModal.addEventListener('click', () => {
+      adminModal.classList.remove('active');
+    });
+  }
+
+  // Handle Login Check
+  if (btnSubmitLogin) {
+    btnSubmitLogin.addEventListener('click', () => {
+      const inputPass = adminPassInput.value;
+      if (inputPass === ADMIN_PASSCODE) {
+        sessionStorage.setItem('liyova_admin_authenticated', 'true');
+        showAdminDashboard();
+        adminPassInput.value = '';
+        loginErrorMsg.style.display = 'none';
+      } else {
+        loginErrorMsg.textContent = 'Incorrect passcode. Please try again.';
+        loginErrorMsg.style.display = 'block';
+        adminPassInput.value = '';
+      }
+    });
+
+    // Enter key press triggers login
+    adminPassInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        btnSubmitLogin.click();
+      }
+    });
+  }
+
+  function showAdminLogin() {
+    adminLoginScreen.style.display = 'block';
+    adminDashboardScreen.style.display = 'none';
+  }
+
+  function showAdminDashboard() {
+    adminLoginScreen.style.display = 'none';
+    adminDashboardScreen.style.display = 'grid';
+    
+    // Default Tab
+    switchDashboardTab('overview');
+  }
+
+  // Dashboard Tab Switching Handler
+  const dashNavItems = document.querySelectorAll('.dash-nav-item');
+  dashNavItems.forEach(item => {
+    item.addEventListener('click', () => {
+      dashNavItems.forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      switchDashboardTab(item.dataset.tab);
+    });
+  });
+
+  function switchDashboardTab(tabName) {
+    const dashViews = document.querySelectorAll('.dash-view');
+    dashViews.forEach(view => view.classList.remove('active'));
+
+    const activeView = document.getElementById(`view-${tabName}`);
+    if (activeView) {
+      activeView.classList.add('active');
+    }
+
+    // Refresh contents
+    if (tabName === 'overview') {
+      renderAnalyticsOverview();
+    } else if (tabName === 'orders') {
+      renderOrdersLog();
+    } else if (tabName === 'pricing') {
+      renderPricingForm();
+    } else if (tabName === 'settings') {
+      renderSettingsPanel();
+    } else if (tabName === 'backup') {
+      renderBackupPanel();
+    }
+  }
+
+  // 12.1 OVERVIEW / ANALYTICS
+  function renderAnalyticsOverview() {
+    let totalRevenue = 0;
+    let whatsappOrdersCount = 0;
+    let inquiriesCount = 0;
+    const categoryCounts = {};
+
+    ORDER_LOGS.forEach(order => {
+      totalRevenue += parseFloat(order.total) || 0;
+      if (order.type === 'WhatsApp Cart') {
+        whatsappOrdersCount++;
+        // Track category counts
+        Object.keys(SERVICES_CONFIG).forEach(key => {
+          if (order.details.toLowerCase().includes(SERVICES_CONFIG[key].name.toLowerCase())) {
+            categoryCounts[key] = (categoryCounts[key] || 0) + 1;
+          }
+        });
+      } else {
+        inquiriesCount++;
+      }
+    });
+
+    document.getElementById('statTotalRevenue').textContent = `₹${totalRevenue}`;
+    document.getElementById('statTotalOrders').textContent = ORDER_LOGS.length;
+    document.getElementById('statWaCount').textContent = whatsappOrdersCount;
+    document.getElementById('statInqCount').textContent = inquiriesCount;
+
+    // Find most popular service
+    let popularService = 'N/A';
+    let maxCount = 0;
+    Object.keys(categoryCounts).forEach(key => {
+      if (categoryCounts[key] > maxCount) {
+        maxCount = categoryCounts[key];
+        popularService = SERVICES_CONFIG[key].name;
+      }
+    });
+    document.getElementById('statPopularService').textContent = popularService;
+
+    // Render Analytics Chart Indicators
+    const chartContainer = document.getElementById('analyticsCharts');
+    if (chartContainer) {
+      let chartsHtml = '';
+      if (ORDER_LOGS.length === 0) {
+        chartsHtml = `<p style="color:var(--text-muted); font-size:0.9rem; text-align:center; padding: 20px 0;">No order logs present to calculate charts.</p>`;
+      } else {
+        chartsHtml = `
+          <h4 style="color:#FFFFFF; font-family:var(--font-heading); margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:8px;">Popularity Breakdown</h4>
+          <div style="display:flex; flex-direction:column; gap:16px;">
+        `;
+        
+        Object.keys(SERVICES_CONFIG).forEach(key => {
+          const count = categoryCounts[key] || 0;
+          const percentage = whatsappOrdersCount > 0 ? Math.round((count / whatsappOrdersCount) * 100) : 0;
+          
+          chartsHtml += `
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:6px;">
+                <span style="font-weight:700; color:var(--text-light);">${SERVICES_CONFIG[key].name}</span>
+                <span style="color:var(--gold); font-weight:700;">${count} orders (${percentage}%)</span>
+              </div>
+              <div style="background:rgba(255,255,255,0.05); height:8px; border-radius:4px; overflow:hidden;">
+                <div style="background:var(--gold); height:100%; width:${percentage}%; transition:width 0.5s ease;"></div>
+              </div>
+            </div>
+          `;
+        });
+        chartsHtml += '</div>';
+      }
+      chartContainer.innerHTML = chartsHtml;
+    }
+  }
+
+  // 12.2 ORDERS LOG
+  function renderOrdersLog() {
+    const tableBody = document.getElementById('ordersTableBody');
+    if (!tableBody) return;
+
+    if (ORDER_LOGS.length === 0) {
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align:center; padding:40px 0; color:var(--text-muted); font-size:0.9rem;">
+            No orders or inquiries logged yet.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    let html = '';
+    ORDER_LOGS.forEach(order => {
+      const badgeColor = order.type === 'WhatsApp Cart' ? '#25D366' : '#C5A880';
+      const statusBadge = order.status === 'Completed' ? 'background:#1B5E20; color:#81C784;' : 'background:#4A2E16; color:var(--gold);';
+      
+      html += `
+        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+          <td style="padding:14px; font-size:0.85rem; color:var(--text-muted); font-family:monospace;">${order.timestamp}</td>
+          <td style="padding:14px;">
+            <span style="background:${badgeColor}; color:#000000; font-size:0.75rem; font-weight:700; padding:3px 8px; border-radius:4px;">${order.type}</span>
+          </td>
+          <td style="padding:14px; font-size:0.85rem; color:#FFFFFF; max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${order.details}">
+            ${order.details}
+          </td>
+          <td style="padding:14px; font-weight:700; color:#FFFFFF;">₹${order.total}</td>
+          <td style="padding:14px;">
+            <button onclick="toggleOrderStatus(${order.id})" style="border:none; border-radius:4px; font-size:0.75rem; font-weight:700; padding:4px 8px; cursor:pointer; ${statusBadge}">
+              ${order.status || 'Pending'}
+            </button>
+          </td>
+          <td style="padding:14px; text-align:center;">
+            <button onclick="deleteOrderLog(${order.id})" style="background:none; border:none; color:#FF4D4D; cursor:pointer; padding:4px;" title="Delete Log">
+              <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+    tableBody.innerHTML = html;
+  }
+
+  window.toggleOrderStatus = function(id) {
+    ORDER_LOGS = ORDER_LOGS.map(order => {
+      if (order.id === id) {
+        order.status = order.status === 'Completed' ? 'Pending' : 'Completed';
+      }
+      return order;
+    });
+    localStorage.setItem('liyova_order_logs', JSON.stringify(ORDER_LOGS));
+    renderOrdersLog();
+  };
+
+  window.deleteOrderLog = function(id) {
+    if (confirm('Are you sure you want to delete this order log?')) {
+      ORDER_LOGS = ORDER_LOGS.filter(order => order.id !== id);
+      localStorage.setItem('liyova_order_logs', JSON.stringify(ORDER_LOGS));
+      renderOrdersLog();
+    }
+  };
+
+  // 12.3 PRICING EDITOR
+  function renderPricingForm() {
+    const container = document.getElementById('pricingFormContainer');
+    if (!container) return;
+
+    let html = '';
+
+    Object.keys(SERVICES_CONFIG).forEach(serviceKey => {
+      const service = SERVICES_CONFIG[serviceKey];
+      html += `
+        <div class="pricing-editor-section" style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); padding:20px; border-radius:var(--radius-md); margin-bottom:20px;">
+          <h4 style="color:var(--gold); font-family:var(--font-heading); font-size:1.15rem; margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:6px;">${service.name}</h4>
+          <div style="display:flex; flex-direction:column; gap:16px;">
+      `;
+
+      Object.keys(service.options).forEach(optKey => {
+        const option = service.options[optKey];
+        
+        html += `
+          <div style="background: rgba(0,0,0,0.2); padding:12px; border-radius:6px; border:1px solid rgba(255,255,255,0.03);">
+            <div style="font-weight:700; color:#FFFFFF; margin-bottom:8px; font-size:0.9rem;">${option.label}</div>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:10px;">
+        `;
+
+        if (service.type === 'document-printing') {
+          html += `
+            <div>
+              <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">Single Side Rate (₹)</label>
+              <input type="number" step="0.1" class="pricing-input" data-service="${serviceKey}" data-opt="${optKey}" data-field="rateSingle" value="${option.rateSingle}">
+            </div>
+            <div>
+              <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">Bulk Single Rate (₹)</label>
+              <input type="number" step="0.1" class="pricing-input" data-service="${serviceKey}" data-opt="${optKey}" data-field="discountRateSingle" value="${option.discountRateSingle}">
+            </div>
+          `;
+          if (!option.singleSideOnly) {
+            html += `
+              <div>
+                <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">Double Side Rate (₹)</label>
+                <input type="number" step="0.1" class="pricing-input" data-service="${serviceKey}" data-opt="${optKey}" data-field="rateDouble" value="${option.rateDouble}">
+              </div>
+              <div>
+                <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">Bulk Double Rate (₹)</label>
+                <input type="number" step="0.1" class="pricing-input" data-service="${serviceKey}" data-opt="${optKey}" data-field="discountRateDouble" value="${option.discountRateDouble}">
+              </div>
+            `;
+          }
+        } else if (service.type === 'pages') {
+          html += `
+            <div>
+              <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">Base Cost (₹)</label>
+              <input type="number" step="1" class="pricing-input" data-service="${serviceKey}" data-opt="${optKey}" data-field="base" value="${option.base}">
+            </div>
+            <div>
+              <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">Per Page Cost (₹)</label>
+              <input type="number" step="1" class="pricing-input" data-service="${serviceKey}" data-opt="${optKey}" data-field="perPage" value="${option.perPage}">
+            </div>
+          `;
+        } else if (service.type === 'quantity') {
+          html += `
+            <div>
+              <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">Unit Price (₹)</label>
+              <input type="number" step="1" class="pricing-input" data-service="${serviceKey}" data-opt="${optKey}" data-field="rate" value="${option.rate}">
+            </div>
+          `;
+        }
+
+        html += `</div></div>`;
+      });
+
+      html += `</div></div>`;
+    });
+
+    // Add save button at the bottom
+    html += `
+      <button id="btnSavePricing" class="btn btn-primary" style="width:100%; margin-top:10px; font-weight:700;">
+        Save All Pricing Rates
+      </button>
+    `;
+
+    container.innerHTML = html;
+
+    // Attach Save Listener
+    const btnSavePricing = document.getElementById('btnSavePricing');
+    if (btnSavePricing) {
+      btnSavePricing.addEventListener('click', () => {
+        savePricingFromForm();
+      });
+    }
+  }
+
+  function savePricingFromForm() {
+    const inputs = document.querySelectorAll('.pricing-input');
+    inputs.forEach(input => {
+      const sKey = input.dataset.service;
+      const oKey = input.dataset.opt;
+      const field = input.dataset.field;
+      const value = parseFloat(input.value);
+
+      if (SERVICES_CONFIG[sKey] && SERVICES_CONFIG[sKey].options[oKey]) {
+        SERVICES_CONFIG[sKey].options[oKey][field] = value;
+      }
+    });
+
+    localStorage.setItem('liyova_services_config', JSON.stringify(SERVICES_CONFIG));
+    alert('All pricing rates updated successfully!');
+    
+    // Re-initialize Calculator fields
+    initCalculatorServices();
+  }
+
+  // 12.4 EXPORT & IMPORT BACKUPS
+  function renderBackupPanel() {
+    const btnExportData = document.getElementById('btnExportData');
+    const inputImportFile = document.getElementById('inputImportFile');
+
+    if (btnExportData) {
+      // Remove any duplicate listener
+      const newBtn = btnExportData.cloneNode(true);
+      btnExportData.parentNode.replaceChild(newBtn, btnExportData);
+      
+      newBtn.addEventListener('click', () => {
+        const backupData = {
+          services_config: SERVICES_CONFIG,
+          order_logs: ORDER_LOGS,
+          admin_passcode: ADMIN_PASSCODE
+        };
+
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", `liyova_backup_${new Date().toISOString().slice(0,10)}.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+      });
+    }
+
+    if (inputImportFile) {
+      inputImportFile.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          try {
+            const parsedData = JSON.parse(event.target.result);
+            if (parsedData.services_config && parsedData.order_logs) {
+              SERVICES_CONFIG = parsedData.services_config;
+              ORDER_LOGS = parsedData.order_logs;
+              ADMIN_PASSCODE = parsedData.admin_passcode || ADMIN_PASSCODE;
+
+              localStorage.setItem('liyova_services_config', JSON.stringify(SERVICES_CONFIG));
+              localStorage.setItem('liyova_order_logs', JSON.stringify(ORDER_LOGS));
+              localStorage.setItem('liyova_admin_passcode', ADMIN_PASSCODE);
+
+              alert('Database imported successfully! Page will refresh now.');
+              window.location.reload();
+            } else {
+              alert('Invalid backup file structure. Missing fields.');
+            }
+          } catch (err) {
+            alert('Error parsing JSON backup file.');
+          }
+        };
+        reader.readAsText(file);
+      });
+    }
+  }
+
+  // 12.5 SETTINGS
+  function renderSettingsPanel() {
+    const btnChangePasscode = document.getElementById('btnChangePasscode');
+    const inputNewPasscode = document.getElementById('inputNewPasscode');
+    const btnResetDefaults = document.getElementById('btnResetDefaults');
+    const btnWipeLogs = document.getElementById('btnWipeLogs');
+
+    if (btnChangePasscode) {
+      const newBtn = btnChangePasscode.cloneNode(true);
+      btnChangePasscode.parentNode.replaceChild(newBtn, btnChangePasscode);
+
+      newBtn.addEventListener('click', () => {
+        const newCode = inputNewPasscode.value.trim();
+        if (newCode.length < 4) {
+          alert('Passcode must be at least 4 characters.');
+          return;
+        }
+        ADMIN_PASSCODE = newCode;
+        localStorage.setItem('liyova_admin_passcode', newCode);
+        alert('Passcode changed successfully!');
+        inputNewPasscode.value = '';
+      });
+    }
+
+    if (btnResetDefaults) {
+      const newBtn = btnResetDefaults.cloneNode(true);
+      btnResetDefaults.parentNode.replaceChild(newBtn, btnResetDefaults);
+
+      newBtn.addEventListener('click', () => {
+        if (confirm('Warning: This will restore all pricing rates back to the original standard list. Continue?')) {
+          SERVICES_CONFIG = DEFAULT_SERVICES_CONFIG;
+          localStorage.setItem('liyova_services_config', JSON.stringify(DEFAULT_SERVICES_CONFIG));
+          alert('Pricing configuration reset completed!');
+          window.location.reload();
+        }
+      });
+    }
+
+    if (btnWipeLogs) {
+      const newBtn = btnWipeLogs.cloneNode(true);
+      btnWipeLogs.parentNode.replaceChild(newBtn, btnWipeLogs);
+
+      newBtn.addEventListener('click', () => {
+        if (confirm('Warning: This will permanently delete all order logs and inquiry histories. This action is irreversible! Continue?')) {
+          ORDER_LOGS = [];
+          localStorage.setItem('liyova_order_logs', JSON.stringify([]));
+          alert('All order logs cleared!');
+          switchDashboardTab('overview');
+        }
+      });
+    }
+  }
+
 });
