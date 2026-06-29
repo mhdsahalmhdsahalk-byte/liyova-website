@@ -36,7 +36,7 @@
   
   /* Fonts */
   --font-heading: 'Playfair Display', serif;
-  --font-logo: 'Comfortaa', sans-serif;
+  --font-logo: 'Bauhaus 93', 'ITC Bauhaus', 'Comfortaa', sans-serif;
   --font-body: 'Plus Jakarta Sans', sans-serif;
   
   /* Border Radius */
@@ -276,7 +276,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .logo-subtitle {
-  font-family: var(--font-heading);
+  font-family: 'Times New Roman', 'Times', 'Playfair Display', serif;
   font-size: 1.05rem;
   font-weight: 700;
   color: var(--text-dark);
